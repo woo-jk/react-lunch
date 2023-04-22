@@ -2,7 +2,7 @@ import "./index.css";
 import { useState, useEffect } from "react";
 import RestaurantItem from "../RestaurantItem";
 import { CategoryOption, Restaurant, SortOption } from "../../types/restaurant";
-import { useLocalStorage } from "../../hooks";
+import { useLocalStorage, useRestaurantList } from "../../hooks";
 import getMockData from "../../data/getMockData";
 import { LOCAL_STORAGE_KEY } from "../../constants";
 
@@ -15,41 +15,15 @@ interface RestaurantListProps {
 const RestaurantList = ({ currentCategory, currentSort, onClickRestaurantItem }: RestaurantListProps) => {
   const mockList: Restaurant[] = getMockData();
   const [allRestaurantList] = useLocalStorage<Restaurant[]>(LOCAL_STORAGE_KEY, mockList);
-  const [restaurantList, setRestaurantList] = useState<Restaurant[]>(allRestaurantList);
+  const { restaurantList, setListByCategory, setListBySort } = useRestaurantList(allRestaurantList);
 
   useEffect(() => {
-    const restaurantListByCategory = getListByCategory(allRestaurantList);
-    const sortedRestaurantList = getSortedList(restaurantListByCategory);
+    setListByCategory(currentCategory);
+  }, [currentCategory]);
 
-    setRestaurantList(sortedRestaurantList);
-  }, [currentCategory, currentSort]);
-
-  const getListByCategory = (restaurants: Restaurant[]) => {
-    if (currentCategory === "all") {
-      return restaurants;
-    }
-
-    return restaurants.filter((restaurant) => restaurant.category === currentCategory);
-  };
-
-  const getSortedList = (restaurants: Restaurant[]) => {
-    if (currentSort === "name") {
-      return getSortedListByName(restaurants);
-    }
-    if (currentSort === "distance") {
-      return getSortedListByDistance(restaurants);
-    }
-
-    return restaurants;
-  };
-
-  const getSortedListByName = (restaurants: Restaurant[]) => {
-    return [...restaurants].sort((a, b) => a.name.localeCompare(b.name));
-  };
-
-  const getSortedListByDistance = (restaurants: Restaurant[]) => {
-    return [...restaurants].sort((a, b) => a.distance - b.distance);
-  };
+  useEffect(() => {
+    setListBySort(currentSort);
+  }, [currentSort]);
 
   return (
     <section className="restaurant-list-container">
